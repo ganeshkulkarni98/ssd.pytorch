@@ -12,64 +12,64 @@ COCO_ROOT = osp.join(HOME, 'data/coco/')
 IMAGES = 'images'
 ANNOTATIONS = 'annotations'
 COCO_API = 'PythonAPI'
-INSTANCES_SET = 'instances_{}.json'
-COCO_CLASSES = ('person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus',
-                'train', 'truck', 'boat', 'traffic light', 'fire', 'hydrant',
-                'stop sign', 'parking meter', 'bench', 'bird', 'cat', 'dog',
-                'horse', 'sheep', 'cow', 'elephant', 'bear', 'zebra',
-                'giraffe', 'backpack', 'umbrella', 'handbag', 'tie',
-                'suitcase', 'frisbee', 'skis', 'snowboard', 'sports ball',
-                'kite', 'baseball bat', 'baseball glove', 'skateboard',
-                'surfboard', 'tennis racket', 'bottle', 'wine glass', 'cup',
-                'fork', 'knife', 'spoon', 'bowl', 'banana', 'apple',
-                'sandwich', 'orange', 'broccoli', 'carrot', 'hot dog', 'pizza',
-                'donut', 'cake', 'chair', 'couch', 'potted plant', 'bed',
-                'dining table', 'toilet', 'tv', 'laptop', 'mouse', 'remote',
-                'keyboard', 'cell phone', 'microwave oven', 'toaster', 'sink',
-                'refrigerator', 'book', 'clock', 'vase', 'scissors',
-                'teddy bear', 'hair drier', 'toothbrush')
+# INSTANCES_SET = 'instances_{}.json'
+# COCO_CLASSES = ('person', 'bicycle', 'car', 'motorcycle', 'airplane', 'bus',
+#                 'train', 'truck', 'boat', 'traffic light', 'fire', 'hydrant',
+#                 'stop sign', 'parking meter', 'bench', 'bird', 'cat', 'dog',
+#                 'horse', 'sheep', 'cow', 'elephant', 'bear', 'zebra',
+#                 'giraffe', 'backpack', 'umbrella', 'handbag', 'tie',
+#                 'suitcase', 'frisbee', 'skis', 'snowboard', 'sports ball',
+#                 'kite', 'baseball bat', 'baseball glove', 'skateboard',
+#                 'surfboard', 'tennis racket', 'bottle', 'wine glass', 'cup',
+#                 'fork', 'knife', 'spoon', 'bowl', 'banana', 'apple',
+#                 'sandwich', 'orange', 'broccoli', 'carrot', 'hot dog', 'pizza',
+#                 'donut', 'cake', 'chair', 'couch', 'potted plant', 'bed',
+#                 'dining table', 'toilet', 'tv', 'laptop', 'mouse', 'remote',
+#                 'keyboard', 'cell phone', 'microwave oven', 'toaster', 'sink',
+#                 'refrigerator', 'book', 'clock', 'vase', 'scissors',
+#                 'teddy bear', 'hair drier', 'toothbrush')
 
 
-def get_label_map(label_file):
-    label_map = {}
-    labels = open(label_file, 'r')
-    for line in labels:
-        ids = line.split(',')
-        label_map[int(ids[0])] = int(ids[1])
-    return label_map
+# def get_label_map(label_file):
+#     label_map = {}
+#     labels = open(label_file, 'r')
+#     for line in labels:
+#         ids = line.split(',')
+#         label_map[int(ids[0])] = int(ids[1])
+#     return label_map
 
 
-class COCOAnnotationTransform(object):
-    """Transforms a COCO annotation into a Tensor of bbox coords and label index
-    Initilized with a dictionary lookup of classnames to indexes
-    """
-    def __init__(self):
-        self.label_map = get_label_map(osp.join(COCO_ROOT, 'coco_labels.txt'))
+# class COCOAnnotationTransform(object):
+#     """Transforms a COCO annotation into a Tensor of bbox coords and label index
+#     Initilized with a dictionary lookup of classnames to indexes
+#     """
+#     def __init__(self):
+#         self.label_map = get_label_map(osp.join(COCO_ROOT, 'coco_labels.txt'))
 
-    def __call__(self, target, width, height):
-        """
-        Args:
-            target (dict): COCO target json annotation as a python dict
-            height (int): height
-            width (int): width
-        Returns:
-            a list containing lists of bounding boxes  [bbox coords, class idx]
-        """
-        scale = np.array([width, height, width, height])
-        res = []
-        for obj in target:
-            if 'bbox' in obj:
-                bbox = obj['bbox']
-                bbox[2] += bbox[0]
-                bbox[3] += bbox[1]
-                label_idx = self.label_map[obj['category_id']] - 1
-                final_box = list(np.array(bbox)/scale)
-                final_box.append(label_idx)
-                res += [final_box]  # [xmin, ymin, xmax, ymax, label_idx]
-            else:
-                print("no bbox problem!")
+#     def __call__(self, target, width, height):
+#         """
+#         Args:
+#             target (dict): COCO target json annotation as a python dict
+#             height (int): height
+#             width (int): width
+#         Returns:
+#             a list containing lists of bounding boxes  [bbox coords, class idx]
+#         """
+#         scale = np.array([width, height, width, height])
+#         res = []
+#         for obj in target:
+#             if 'bbox' in obj:
+#                 bbox = obj['bbox']
+#                 bbox[2] += bbox[0]
+#                 bbox[3] += bbox[1]
+#                 label_idx = self.label_map[obj['category_id']] - 1
+#                 final_box = list(np.array(bbox)/scale)
+#                 final_box.append(label_idx)
+#                 res += [final_box]  # [xmin, ymin, xmax, ymax, label_idx]
+#             else:
+#                 print("no bbox problem!")
 
-        return res  # [[xmin, ymin, xmax, ymax, label_idx], ... ]
+#         return res  # [[xmin, ymin, xmax, ymax, label_idx], ... ]
 
 
 class COCODetection(data.Dataset):
