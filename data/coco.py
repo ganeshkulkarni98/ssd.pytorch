@@ -160,10 +160,8 @@ class COCODetection(data.Dataset):
 
     def pull_image(self, index):
         '''Returns the original image object at index in PIL form
-
         Note: not using self.__getitem__(), as any transformations passed in
         could mess up this functionality.
-
         Argument:
             index (int): index of img to show
         Return:
@@ -175,10 +173,8 @@ class COCODetection(data.Dataset):
 
     def pull_anno(self, index):
         '''Returns the original annotation of image at index
-
         Note: not using self.__getitem__(), as any transformations passed in
         could mess up this functionality.
-
         Argument:
             index (int): index of img to get annotation of
         Return:
