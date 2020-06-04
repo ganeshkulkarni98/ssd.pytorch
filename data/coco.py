@@ -83,17 +83,22 @@ class COCODetection(data.Dataset):
         in the target (bbox) and transforms it.
     """
 
-    def __init__(self, root, image_set='trainval35k', transform=None,
-                 target_transform=COCOAnnotationTransform(), dataset_name='MS COCO'):
+    def __init__(self, image_folder_path, json_file_path, transform=None,
+                 target_transform=COCOAnnotationTransform()):
         sys.path.append(osp.join(root, COCO_API))
         from pycocotools.coco import COCO
-        self.root = osp.join(root, IMAGES, image_set)
-        self.coco = COCO(osp.join(root, ANNOTATIONS,
-                                  INSTANCES_SET.format(image_set)))
-        self.ids = list(self.coco.imgToAnns.keys())
+        #self.root = osp.join(root, IMAGES, image_set)
+        #self.coco = COCO(osp.join(root, ANNOTATIONS,
+        #                          INSTANCES_SET.format(image_set)))
+        #self.ids = list(self.coco.imgToAnns.keys())
+        self.image_folder_path = image_folder_path
+        self.json_file_path = json_file_path
         self.transform = transform
         self.target_transform = target_transform
-        self.name = dataset_name
+        self.imgs = list(sorted(os.listdir(image_folder_path)))
+        self.anno = json.load(open(json_file_path))
+        self.annotation = self.anno["annotations"]
+        #self.name = dataset_name
 
     def __getitem__(self, index):
         """
@@ -107,7 +112,7 @@ class COCODetection(data.Dataset):
         return im, gt
 
     def __len__(self):
-        return len(self.ids)
+        return len(self.imgs)
 
     def pull_item(self, index):
         """
@@ -117,17 +122,32 @@ class COCODetection(data.Dataset):
             tuple: Tuple (image, target, height, width).
                    target is the object returned by ``coco.loadAnns``.
         """
-        img_id = self.ids[index]
-        target = self.coco.imgToAnns[img_id]
-        ann_ids = self.coco.getAnnIds(imgIds=img_id)
+        #img_id = self.ids[index]
+        #target = self.coco.imgToAnns[img_id]
+        #ann_ids = self.coco.getAnnIds(imgIds=img_id)
 
-        target = self.coco.loadAnns(ann_ids)
-        path = osp.join(self.root, self.coco.loadImgs(img_id)[0]['file_name'])
-        assert osp.exists(path), 'Image path does not exist: {}'.format(path)
-        img = cv2.imread(osp.join(self.root, path))
+        #target = self.coco.loadAnns(ann_ids)
+        #path = osp.join(self.root, self.coco.loadImgs(img_id)[0]['file_name'])
+        #assert osp.exists(path), 'Image path does not exist: {}'.format(path)
+        #img = cv2.imread(osp.join(self.root, path))
+        img_path = os.path.join(self.image_folder_path, self.imgs[idx])
+        img = Image.open(img_path).convert("RGB")
+        
+        target = []
+        scale = np.array([width, height, width, height])
+        self.annotation[j]["bbox"] = list(np.array(self.annotation[j]["bbox"])/scale)
+        for j in range (0,len(self.annotation)):
+          if self.annotation[j]["image_id"] == idx :
+
+            self.annotation[j]["bbox"][2] = self.annotation[j]["bbox"][0] + self.annotation[j]["bbox"][2]
+            self.annotation[j]["bbox"][3] = self.annotation[j]["bbox"][1] + self.annotation[j]["bbox"][3]
+
+            self.annotation[j]["bbox"].append(self.annotation[j]["category_id"])
+            target.append(self.annotation[j]["bbox"])
+            
         height, width, _ = img.shape
-        if self.target_transform is not None:
-            target = self.target_transform(target, width, height)
+        #if self.target_transform is not None:
+        #    target = self.target_transform(target, width, height)
         if self.transform is not None:
             target = np.array(target)
             img, boxes, labels = self.transform(img, target[:, :4],
